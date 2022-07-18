@@ -9,9 +9,6 @@ class DR1x:
 
     __on_tx_start = None
     __on_tx_stop  = None
-    __on_check_usage_start = None
-    __on_check_usage_stop = None
-    __in_check_usage = False 
 
     def __init__(self):
         # init io pins
@@ -35,17 +32,11 @@ class DR1x:
     def on_tx_stop_disconnect(self):
         self.__on_tx_stop = None
 
-    def on_check_usage_start_connect(self, cb):
-        self.__on_check_usage_start = cb
+    def ctcss_detected(self):
+        return self.pin_ctcss_rx.value()
 
-    def on_check_usage_start_disconnect(self):
-        self.__on_check_usage_start = None 
-
-    def on_check_usage_stop_connect(self, cb):
-        self.__on_check_usage_stop = cb
-
-    def on_check_usage_stop_disconnect(self):
-        self.__on_check_usage_stop = None 
+    def ctcss_get_hw_pin(self):
+        return self.pin_ctcss_rx
 
     def tx_start(self): 
         if self.__on_tx_start != None:
@@ -61,32 +52,9 @@ class DR1x:
         if self.__on_tx_stop != None:
             self.__on_tx_stop()
 
-    def check_repeater_in_use(self, seconds=10):
-        count = 0
-        __in_check_usage = True 
-        if self.__on_check_usage_start != None:
-            self.__on_check_usage_start()
-
-        print("[Info] :: Checking if repeater is free to ID...")
-
-        while True:
-            count = count + 1
-            if self.pin_ctcss_rx.value() == 0:
-                count = 0
-                print("[Warn] :: CTCSS detected, busy? => Reset counter")
-
-            utime.sleep_ms(50)
-
-            #self.pin_led_id.value(not self.pin_led_id.value())
-
-            if count % 20 == 0:
-                print ("[Time] :: Elapsed %d/10 sec." % ((int) (count / 20)))
-            if count >= 200:
-                print ("[Info] :: Will ID Repeater now ...")
-                if self.__on_check_usage_stop != None:
-                    self.__on_check_usage_stop()
-                __in_check_usage = False 
-                break
+"""
+Test module
+"""
 
 if __name__ == "__main__":  
 
@@ -107,17 +75,7 @@ if __name__ == "__main__":
     dr1x.on_tx_start_connect(turn_led_on)
     dr1x.on_tx_stop_connect(turn_led_off)
 
-    async def id_blink():
-        while __in_check_usage: 
-            pin_led_id.high()
-            await asyncio.sleep(0.05)
-            pin_led_id.low()
-            await asyncio.sleep(0.05)
-        
-    dr1x.on_check_usage_start_connect(id_blink)
-
     while(True):
-        dr1x.check_repeater_in_use() # asyncio wont work here. rethink
         dr1x.tx_start()
         utime.sleep(5)
         dr1x.tx_stop()
