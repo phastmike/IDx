@@ -11,14 +11,11 @@ class DR1x:
     __on_tx_stop  = None
 
     def __init__(self):
-        # init io pins
         self.pin_remote = Pin(0, Pin.OUT, Pin.PULL_UP, value=1)
         self.pin_ptt = Pin(1, Pin.OUT, Pin.PULL_UP, value=1)
         self.pin_ctcss_rx = Pin(2, Pin.IN, Pin.PULL_UP)
         self.pin_ext1 = Pin(3, Pin.OUT, Pin.PULL_UP, value=0)
         self.pin_ext3 = Pin(4, Pin.OUT, Pin.PULL_UP, value=1)
-        #pin_led_ctcss = Pin(17, Pin.OUT, None, value=0)
-        #pin_led_id = Pin(18, Pin.OUT, None, value=0)
 
     def on_tx_start_connect(self, cb):
         self.__on_tx_start = cb
@@ -58,8 +55,6 @@ Test module
 
 if __name__ == "__main__":  
 
-    import uasyncio as asyncio
-
     print("Start DR1x tests")
     pin_led_id = Pin(18, Pin.OUT, None)
     
@@ -80,5 +75,4 @@ if __name__ == "__main__":
         utime.sleep(5)
         dr1x.tx_stop()
         utime.sleep(5)
-
 
