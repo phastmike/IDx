@@ -17,6 +17,7 @@
 '''
 import utime
 import os as uos
+from hmi import HMI
 from dr1x import DR1x
 from machine import Pin
 from wavePlayer import wavePlayer
@@ -60,27 +61,19 @@ if __name__ == "__main__":
     sm = rp2.StateMachine(0, blink, freq=2000, set_base=Pin(25))
     sm.active(1)
     
+    hmi = HMI()
     audioPath = "audio/"
     temperature_threshold = 30.0
     pico_temp = picoTemperature()
     taa = temperatureAsAudio()
     
-    def turn_led_on():
-        pin_led_id.high()
-        print("TX Start")
-    
-    def turn_led_off():
-        pin_led_id.low()
-        print("TX Stop")
+    # Could use hmi methods instead of direct
+    # reference to the led/pin
 
     dr1x = DR1x()
-    dr1x.on_tx_start_connect(turn_led_on)
-    dr1x.on_tx_stop_connect(turn_led_off)
+    dr1x.on_tx_start_connect(hmi.led_id.high)
+    dr1x.on_tx_stop_connect(hmi.led_id.low)
 
-    # Led Power on connected to Vcc
-    pin_led_ctcss = Pin(17, Pin.OUT, None)
-    pin_led_id = Pin(18, Pin.OUT, None)
-    
     # IRQ Handler for CTCSS
     def irq_on_ctcss(pin):
         if pin.value() == 0:
@@ -92,8 +85,8 @@ if __name__ == "__main__":
     dr1x.ctcss_get_hw_pin().irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
 
     # Init Leds 
-    pin_led_ctcss.low()
-    pin_led_id.low()
+    hmi.led_ctcss.low()
+    hmi.led_id.low()
     
     #init audio player
     player = wavePlayer()
@@ -113,7 +106,7 @@ if __name__ == "__main__":
                     print("[Warn] :: CTCSS detected, busy? => Reset counter")
                 #utime.sleep(0.05)
                 utime.sleep_ms(50)
-                pin_led_id.value(not pin_led_id.value())
+                hmi.led_id.value(not hmi.led_id.value())
                 if count % 20 == 0:
                     print ("[Time] :: Elapsed %d/10 sec." % ((int) (count / 20)))
                 if count >= 200:
