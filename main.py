@@ -73,22 +73,13 @@ if __name__ == "__main__":
         pin_led_id.low()
         print("TX Stop")
 
-    # init io pins
     dr1x = DR1x()
     dr1x.on_tx_start_connect(turn_led_on)
     dr1x.on_tx_stop_connect(turn_led_off)
 
-    """
-    pin_dr1x_remote = Pin(0, Pin.OUT, Pin.PULL_UP)
-    pin_dr1x_ptt = Pin(1, Pin.OUT, Pin.PULL_UP)
-    pin_dr1x_ctcss_rx = Pin(2, Pin.IN, Pin.PULL_UP)
-    pin_dr1x_ext1 = Pin(3, Pin.OUT, Pin.PULL_UP)
-    pin_dr1x_ext3 = Pin(4, Pin.OUT, Pin.PULL_UP)
-    """
     # Led Power on connected to Vcc
     pin_led_ctcss = Pin(17, Pin.OUT, None)
     pin_led_id = Pin(18, Pin.OUT, None)
-    #pin_led_internal = Pin(25, Pin.OUT, None)
     
     # IRQ Handler for CTCSS
     def irq_on_ctcss(pin):
@@ -100,19 +91,10 @@ if __name__ == "__main__":
     #pin_dr1x_ctcss_rx.irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
     dr1x.ctcss_get_hw_pin().irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
 
-    
-    # setup gpio initial state
-    """
-    pin_dr1x_remote.high()
-    pin_dr1x_ptt.high()
-    pin_dr1x_ext1.low()
-    pin_dr1x_ext3.high() # Not working
-    """
+    # Init Leds 
     pin_led_ctcss.low()
     pin_led_id.low()
     
-    #pin_led_internal.high()
-
     #init audio player
     player = wavePlayer()
     audioId = audioPath + "main_id.wav"
@@ -139,15 +121,8 @@ if __name__ == "__main__":
                     break
                         
             # Start Tx
-            """
-            pin_led_id.high()
-            pin_dr1x_remote.low()
-            utime.sleep(0.25)
-            pin_dr1x_ptt.low()
-            utime.sleep(0.75)
-            #sm1.active(0.25)
-            """
             dr1x.tx_start()
+            utime.sleep(0.75)
 
             # Play ID
             #audioId = audioPath.join("main_id.wav")
@@ -181,13 +156,6 @@ if __name__ == "__main__":
             #    print("count_1h = %d" % count_1h)
             
             #stop TX
-            """
-            utime.sleep(0.75)
-            pin_dr1x_ptt.high()
-            utime.sleep(0.25)
-            pin_dr1x_remote.high()
-            pin_led_id.low()
-            """
             utime.sleep(0.75)
             dr1x.tx_stop()
 
