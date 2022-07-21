@@ -16,6 +16,7 @@
 
 '''
 import utime
+import constants as const
 import os as uos
 from hmi import HMI
 from dr1x import DR1x
@@ -24,19 +25,15 @@ from wavePlayer import wavePlayer
 from picoTemperature import picoTemperature
 from temperatureAsAudio import temperatureAsAudio
 
-version = "0.1"
-author = "CT1ENQ"
-app = "Pico IDx"
     
 if __name__ == "__main__":
 
     # init
-    print("[Init] :: %s version %s by %s @ 2022" % (app, version, author))
+    print("[Init] :: %s version %s by %s @ 2022" % (const.APP, const.VERSION, const.AUTHOR))
     
     hmi = HMI()
     hmi.led_pico_blink_enable()
     audioPath = "audio/"
-    temperature_threshold = 30.0
     pico_temp = picoTemperature()
     taa = temperatureAsAudio()
     
@@ -96,7 +93,7 @@ if __name__ == "__main__":
             # measure temperature
             temperature = pico_temp.get_temperature() + 7
             #print("Temperature %.1f C" % temperature)
-            if (temperature <= 5 or temperature >= temperature_threshold):
+            if (temperature <= 5 or temperature >= const.TEMPERATURE_THRESHOLD):
                 print("[Warn] :: Temperature %.1f above %.1f :: Playing temperature as audio..." % (temperature, temperature_threshold))
                 utime.sleep(1)
                 taa.play_temperature_as_audio(temperature)
