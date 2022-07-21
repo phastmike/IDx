@@ -24,29 +24,6 @@ from wavePlayer import wavePlayer
 from picoTemperature import picoTemperature
 from temperatureAsAudio import temperatureAsAudio
 
-# for PIO Blinky
-import time
-import rp2
-
-
-# Define the blink program.  It has one GPIO to bind to on the set instruction, which is an output pin.
-# Use lots of delays to make the blinking visible by eye.
-@rp2.asm_pio(set_init=rp2.PIO.OUT_LOW)
-def blink():
-    wrap_target()
-    set(pins, 1)   [31]
-    nop()          [31]
-    nop()          [31]
-    nop()          [31]
-    nop()          [31]
-    set(pins, 0)   [31]
-    nop()          [31]
-    nop()          [31]
-    nop()          [31]
-    nop()          [31]
-    wrap()
-
-
 version = "0.1"
 author = "CT1ENQ"
 app = "Pico IDx"
@@ -56,23 +33,18 @@ if __name__ == "__main__":
     # init
     print("[Init] :: %s version %s by %s @ 2022" % (app, version, author))
     
-    # Instantiate a state machine with the blink program, at 2000Hz, with set bound to Pin(25) (LED on the rp2 board)
-    # Run the state machine, the internal LED should blink.
-    sm = rp2.StateMachine(0, blink, freq=2000, set_base=Pin(25))
-    sm.active(1)
-    
     hmi = HMI()
+    hmi.led_pico_blink_enable()
     audioPath = "audio/"
     temperature_threshold = 30.0
     pico_temp = picoTemperature()
     taa = temperatureAsAudio()
     
-    # Could use hmi methods instead of direct
-    # reference to the led/pin
-
     dr1x = DR1x()
-    dr1x.on_tx_start_connect(hmi.led_id.high)
-    dr1x.on_tx_stop_connect(hmi.led_id.low)
+    #dr1x.on_tx_start_connect(hmi.led_id.high)
+    #dr1x.on_tx_stop_connect(hmi.led_id.low)
+    dr1x.on_tx_start_connect(hmi.led_id_turn_on)
+    dr1x.on_tx_stop_connect(hmi.led_id_turn_off)
 
     # IRQ Handler for CTCSS
     def irq_on_ctcss(pin):
@@ -84,10 +56,6 @@ if __name__ == "__main__":
     #pin_dr1x_ctcss_rx.irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
     dr1x.ctcss_get_hw_pin().irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
 
-    # Init Leds 
-    hmi.led_ctcss.low()
-    hmi.led_id.low()
-    
     #init audio player
     player = wavePlayer()
     audioId = audioPath + "main_id.wav"
@@ -163,7 +131,7 @@ if __name__ == "__main__":
             
     except KeyboardInterrupt:
         print("[Warn] :: Ctrl + c : Exit mainloop...")
-        sm.active(0)
+        hmi.led_pico_blink_disable()
         player.stop()
         
         

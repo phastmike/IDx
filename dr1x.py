@@ -1,5 +1,9 @@
 """
-DR1X class representing the repeater
+DR1X- class representing the repeater
+
+      This class should be a singleton
+      as only one instance should exist
+      due to hhrdware dependency
 """
 
 import utime
