@@ -6,7 +6,7 @@
  2022 CT1ENQ - José Miguel Fonte
          ARM - Associação de Rádioamadores do Minho - CS5ARM/CS1ARM/CT1ARM
 
- Equipa da ARM:
+ ARM team:
  CT1BDV Emanuel, CT1ENQ Miguel, CT1EYN Costa, CS7AFE Carlos, CT1EUK Freitas, CR7AQJ Soares
 
  Power could be drawn from DE/H-15 Plug, 13.8V 2A (Fuse 3A) and regulated to 5V
@@ -29,17 +29,15 @@ from temperatureAsAudio import temperatureAsAudio
 if __name__ == "__main__":
 
     # init
-    print("[Init] :: %s version %s by %s @ 2022" % (const.APP, const.VERSION, const.AUTHOR))
-    
-    hmi = HMI()
-    hmi.led_pico_blink_enable()
-    audioPath = "audio/"
+    print("[Init] :: %s version %s by %s @ %s" % (const.APP, const.VERSION, const.AUTHOR, const.APP_YEAR))
+    print("FREQ= %f Hz" % (const.SAMPLING_FREQ))    
     pico_temp = picoTemperature()
     taa = temperatureAsAudio()
     
+    hmi = HMI()
+    hmi.led_pico_blink_enable()
+
     dr1x = DR1x()
-    #dr1x.on_tx_start_connect(hmi.led_id.high)
-    #dr1x.on_tx_stop_connect(hmi.led_id.low)
     dr1x.on_tx_start_connect(hmi.led_id_turn_on)
     dr1x.on_tx_stop_connect(hmi.led_id_turn_off)
 
@@ -55,26 +53,34 @@ if __name__ == "__main__":
 
     #init audio player
     player = wavePlayer()
-    audioId = audioPath + "main_id.wav"
+    audioId = const.AUDIO_PATH + const.AUDIO_ID_FILE
+    audioAnn = const.AUDIO_PATH + const.AUDIO_ANN_FILE
     
     count_1h = 0
     
+    # Need to had delay for repeater to boot
+
     try:
         while True:
             # Check repeater in use
             count = 0
-            print("[Info] :: Checking if repeater is free to ID...")
+            print("[Info] :: Checking if repeater is free to ID ...")
             while True:
                 count = count + 1
                 if dr1x.ctcss_detected() == 0:
                     count = 0
                     print("[Warn] :: CTCSS detected, busy? => Reset counter")
                 #utime.sleep(0.05)
-                utime.sleep_ms(50)
-                hmi.led_id.value(not hmi.led_id.value())
-                if count % 20 == 0:
-                    print ("[Time] :: Elapsed %d/10 sec." % ((int) (count / 20)))
-                if count >= 200:
+                utime.sleep_ms(const.SAMPLING_PERIOD_MS)
+
+                ## refactor
+                if count % 4 == 0:
+                    hmi.led_id.value(not hmi.led_id.value())
+
+                if count % (const.SAMPLING_FREQ) == 0:
+                    #print("[Time] :: Waiting for %f secs ... (count = %d)" % (1
+                    print ("[Time] :: Elapsed %d/10 sec." % ((int) (count / (1/0.05))))
+                if count >= (const.USAGE_CHECK_DURATION * const.SAMPLING_FREQ):
                     print ("[Info] :: Will ID Repeater now by playing %s file..." % audioId)
                     break
                         
@@ -83,8 +89,6 @@ if __name__ == "__main__":
             utime.sleep(0.75)
 
             # Play ID
-            #audioId = audioPath.join("main_id.wav")
-            
             try:
                 player.play(audioId)
             except:
@@ -94,20 +98,19 @@ if __name__ == "__main__":
             temperature = pico_temp.get_temperature() + 7
             #print("Temperature %.1f C" % temperature)
             if (temperature <= 5 or temperature >= const.TEMPERATURE_THRESHOLD):
-                print("[Warn] :: Temperature %.1f above %.1f :: Playing temperature as audio..." % (temperature, temperature_threshold))
+                print("[Warn] :: Temperature %.1f above %.1f :: Playing temperature as audio..." % (temperature, const.TEMPERATURE_THRESHOLD))
                 utime.sleep(1)
-                taa.play_temperature_as_audio(temperature)
+                try:
+                    taa.play_temperature_as_audio(temperature)
+                except:
+                    print("[Errr] :: exception in temperature audio ...")
                 utime.sleep(0.25)
             
-            # Play Announcement
-            #audioAnnouncement = audioPath.join("main_an.wav")
-            #if audioAnnouncement in uos.listdir():
-
             # If one hour elapsed, play the announcement if exists
             if count_1h >= 6:
                 count_1h = 0
                 try:
-                    player.play(audioPath + "main_an.wav")
+                    player.play(audioAnn)
                 except:
                     print("[Warn] :: exception in announcement file audio/main_an.wav...")
             #else:

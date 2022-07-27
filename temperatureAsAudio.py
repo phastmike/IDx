@@ -37,7 +37,6 @@ class temperatureAsAudio:
     def play_temperature_as_audio(self, temperature):
         self.player.play(self.audioPath + "temperature.wav")
         
-
         hundreds = int(temperature / 100)
         if (hundreds > 0):
             self.player.play(self.get_audio_file_from_number(hundreds))

@@ -3,9 +3,27 @@ Constants
 """
 
 # Application
+
 APP = "Pico IDx"
-VERSION = "0.1"
+VERSION = "0.2"
 AUTHOR = "CT1ENQ"
+APP_YEAR = 2022
 
 # Temperature
-TEMPERATURE_THRESHOLD = 30.0
+# Announces temperature as audio
+# when above this threshold
+
+TEMPERATURE_THRESHOLD = 25.0
+
+# Audio
+
+AUDIO_PATH = "audio/"
+AUDIO_ID_FILE = "main_id.wav"
+AUDIO_ANN_FILE = "main_an.wav"
+
+# Sampling rate
+
+SAMPLING_PERIOD_SEC = 0.05
+SAMPLING_PERIOD_MS = int(SAMPLING_PERIOD_SEC * 1000)
+SAMPLING_FREQ = 1.0 / (SAMPLING_PERIOD_SEC)
+USAGE_CHECK_DURATION = 10

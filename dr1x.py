@@ -40,6 +40,7 @@ class DR1x:
         return self.pin_ctcss_rx
 
     def tx_start(self): 
+        print("[DR1X] :: Will START TX now ...")
         if self.__on_tx_start != None:
             self.__on_tx_start()
         self.pin_remote.low()
@@ -47,6 +48,7 @@ class DR1x:
         self.pin_ptt.low()
 
     def tx_stop(self): 
+        print("[DR1X] :: Will STOP TX now ...")
         self.pin_ptt.high()
         utime.sleep(0.25)
         self.pin_remote.high()
