@@ -37,14 +37,16 @@ SDK is that the filesystem is already there amongst others.
 Power is drawn from DE/H-15 Plug, 13.8V 2A (Fuse 3A) and regulated to 5V.
 Not many electronics needed, direct interfacing does work with internal pull-ups.
 Can have both VCC from radio and USB VCC as voltage supply and the power switch
-it+s controlling only the radio power supply.
+it's controlling only the radio power supply.
 
 The PWM Audio goes thru a low pass filter and the colume control it's a simple
 resistive voltage divider.
 
 Three leds present some information to the user:
 
-Power On - CTCSS Detection - Tx Identification *(\*)*
+1. Power On
+2. CTCSS Detection
+3. Tx Identification *(\*)*
 
 *(\*) blinks while checking if the repeater it's in use*
 
@@ -70,6 +72,14 @@ Cable colours as used in our DR-1X:
 |13|White/Green|EXT3 (*CTCSS RX control*)|7|4|
 |14|---|EXT4 (*CTCSS TX control*)|---|---|
 |15|Orange|VCC (*13.8V/2A Fused at 3A*)|8|---|
+
+
+Operating mode is intended as FM Fix/FM Fix which means:
+
+- EXT 1: Low
+- EXT 2: High
+
+That's the reason we don't use pin 12, high by default.
 
 ## Author
 
