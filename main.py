@@ -9,7 +9,7 @@
  ARM team:
  CT1BDV Emanuel, CT1ENQ Miguel, CT1EYN Costa, CS7AFE Carlos, CT1EUK Freitas, CR7AQJ Soares
 
- Power could be drawn from DE/H-15 Plug, 13.8V 2A (Fuse 3A) and regulated to 5V
+ Power can be drawn from DE/H-15 Plug, 13.8V 2A (Fuse 3A) and regulated to 5V
  Not much electronics needed, direct interfacing does work with internal pull-ups
  
  Runs on Micropython version 1.18, 1.19.1
