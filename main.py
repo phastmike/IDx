@@ -78,10 +78,15 @@ if __name__ == "__main__":
             print("[Info] :: Checking if repeater is free to ID ...")
             while True:
                 count = count + 1
+
+                # If there is some activity, start recount
+                # Can be improved to be more smart then
+                # a simple unique detection.
+                # First approach, increase detection time
                 if dr1x.ctcss_detected() == 0:
                     count = 0
-                    print("[Warn] :: CTCSS detected, busy? => Reset counter")
-                #utime.sleep(0.05)
+                    print("[Warn] :: CTCSS detected => Reset counter")
+
                 utime.sleep_ms(const.SAMPLING_PERIOD_MS)
 
                 ## refactor
@@ -96,8 +101,7 @@ if __name__ == "__main__":
                             hmi.led_id.value(not hmi.led_id.value())
 
                 if count % (const.SAMPLING_FREQ) == 0:
-                    #print("[Time] :: Waiting for %f secs ... (count = %d)" % (1
-                    print ("[Time] :: Elapsed %d/%d sec." % ((int) (count / (1/0.05)), const.USAGE_CHECK_DURATION))
+                    print ("[Time] :: Elapsed %d/%d sec." % ((int) (count / const.SAMPLING_FREQ), const.USAGE_CHECK_DURATION))
                 if count >= (const.USAGE_CHECK_DURATION * const.SAMPLING_FREQ):
                     print ("[Info] :: Will ID Repeater now by playing %s file..." % audioId)
                     break
