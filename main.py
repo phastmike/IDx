@@ -30,7 +30,15 @@ if __name__ == "__main__":
 
     # init
     print("[Init] :: %s version %s by %s @ %s" % (const.APP, const.VERSION, const.AUTHOR, const.APP_YEAR))
-    print("FREQ= %f Hz" % (const.SAMPLING_FREQ))    
+    print("[Conf] :: ==================================================================")
+    print("[Conf] :: Usage check duration: %d sec." % (const.USAGE_CHECK_DURATION))
+    print("[Conf] :: Usage check frequency: %.1f Hz" % (const.SAMPLING_FREQ))
+    print("[Conf] :: Usage check period: %.2f sec (%.1f ms)" % (const.SAMPLING_PERIOD_SEC, const.SAMPLING_PERIOD_MS))
+    print("[Conf] :: ID file %s %s" % (const.AUDIO_ID_FILE, "found" if const.AUDIO_ID_FILE in uos.listdir(const.AUDIO_PATH) else "NOT FOUND"))
+    print("[Conf] :: Announcement file %s %s" % (const.AUDIO_ANN_FILE, "found" if const.AUDIO_ANN_FILE in uos.listdir(const.AUDIO_PATH) else "NOT FOUND"))
+    print("[Conf] :: ==================================================================")
+
+
     pico_temp = picoTemperature()
     taa = temperatureAsAudio()
     
@@ -59,6 +67,9 @@ if __name__ == "__main__":
     count_1h = 0
     
     # Need to had delay for repeater to boot
+    
+    ID_BLINK_RATE_1 = (const.SAMPLING_FREQ / 2) * 10
+    ID_BLINK_RATE_2 = ID_BLINK_RATE_1 + (ID_BLINK_RATE_1 / 2)
 
     try:
         while True:
@@ -74,12 +85,19 @@ if __name__ == "__main__":
                 utime.sleep_ms(const.SAMPLING_PERIOD_MS)
 
                 ## refactor
-                if count % 4 == 0:
-                    hmi.led_id.value(not hmi.led_id.value())
+                if count < ID_BLINK_RATE_1:
+                    if count % 4 == 0:
+                        hmi.led_id.value(not hmi.led_id.value())
+                else:
+                    if count < ID_BLINK_RATE_2:
+                        if count % 2 == 0:
+                            hmi.led_id.value(not hmi.led_id.value())
+                    else:
+                            hmi.led_id.value(not hmi.led_id.value())
 
                 if count % (const.SAMPLING_FREQ) == 0:
                     #print("[Time] :: Waiting for %f secs ... (count = %d)" % (1
-                    print ("[Time] :: Elapsed %d/10 sec." % ((int) (count / (1/0.05))))
+                    print ("[Time] :: Elapsed %d/%d sec." % ((int) (count / (1/0.05)), const.USAGE_CHECK_DURATION))
                 if count >= (const.USAGE_CHECK_DURATION * const.SAMPLING_FREQ):
                     print ("[Info] :: Will ID Repeater now by playing %s file..." % audioId)
                     break
