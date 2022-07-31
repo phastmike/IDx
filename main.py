@@ -42,6 +42,10 @@ if __name__ == "__main__":
 
     pico_temp = picoTemperature()
     taa = temperatureAsAudio()
+
+    player = wavePlayer()
+    audioId = const.AUDIO_PATH + const.AUDIO_ID_FILE
+    audioAnn = const.AUDIO_PATH + const.AUDIO_ANN_FILE
     
     hmi = HMI()
     hmi.led_pico_blink_enable()
@@ -60,17 +64,12 @@ if __name__ == "__main__":
     #pin_dr1x_ctcss_rx.irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
     dr1x.ctcss_get_hw_pin().irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
 
-    #init audio player
-    player = wavePlayer()
-    audioId = const.AUDIO_PATH + const.AUDIO_ID_FILE
-    audioAnn = const.AUDIO_PATH + const.AUDIO_ANN_FILE
-    
     count_1h = 0
-    
-    # Need to had delay for repeater to boot
     
     ID_BLINK_RATE_1 = (const.SAMPLING_FREQ / 2) * 10
     ID_BLINK_RATE_2 = ID_BLINK_RATE_1 + (ID_BLINK_RATE_1 / 2)
+
+    # Local nested functions
 
     def play_id():
         try:
@@ -107,6 +106,9 @@ if __name__ == "__main__":
         #    print("count_1h = %d" % count_1h)
         return count
 
+    # ---
+    # Need to had delay for repeater to boot
+    # ---
 
     try:
         while True:
