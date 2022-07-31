@@ -139,12 +139,10 @@ if __name__ == "__main__":
                     else:
                             hmi.led_id.value(not hmi.led_id.value())
 
-                """
                 if count % (const.SAMPLING_FREQ) == 0:
                     print ("[Time] :: Elapsed %d/%d sec." % ((int) (count / const.SAMPLING_FREQ), const.USAGE_CHECK_DURATION))
-                """
                 if count >= (const.USAGE_CHECK_DURATION * const.SAMPLING_FREQ):
-                    #print ("[Info] :: Will ID Repeater ...")
+                    print ("[Info] :: Will ID Repeater ...")
                     break
                         
             # Start Tx
@@ -160,8 +158,8 @@ if __name__ == "__main__":
             dr1x.tx_stop()
 
             # Wait most of 10 minutes
-            #utime.sleep(590)
             print("[Info] :: Will *** LONG SLEEP *** until next ID ...")
+            #utime.sleep(590)
             utime.sleep(6)
             
             # If 1 hour elapsed then play the announcement if it exists
