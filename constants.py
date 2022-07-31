@@ -5,7 +5,7 @@ Constants
 # Application
 
 APP = "Pico IDx"
-VERSION = "0.3"
+VERSION = "0.4"
 AUTHOR = "CT1ENQ"
 APP_YEAR = 2022
 
@@ -13,7 +13,7 @@ APP_YEAR = 2022
 # Announces temperature as audio
 # when above this threshold
 
-TEMPERATURE_THRESHOLD = 45.0
+TEMPERATURE_THRESHOLD = 25.0
 
 # Audio
 
