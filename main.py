@@ -28,25 +28,6 @@ from temperatureAsAudio import temperatureAsAudio
     
 if __name__ == "__main__":
 
-    # init
-    print("[Init] :: %s version %s by %s @ %s" % (const.APP, const.VERSION, const.AUTHOR, const.APP_YEAR))
-    print("[Conf] :: ==================================================================")
-    print("[Conf] :: Usage check duration: %d sec." % (const.USAGE_CHECK_DURATION))
-    print("[Conf] :: Usage check frequency: %.1f Hz" % (const.SAMPLING_FREQ))
-    print("[Conf] :: Usage check period: %.2f sec (%.1f ms)" % (const.SAMPLING_PERIOD_SEC, const.SAMPLING_PERIOD_MS))
-    print("[Conf] :: Temperature threshold: %.1f degC" % (const.TEMPERATURE_THRESHOLD))
-    print("[Conf] :: ID file %s%s %s" % (const.AUDIO_PATH, const.AUDIO_ID_FILE, "found" if const.AUDIO_ID_FILE in uos.listdir(const.AUDIO_PATH) else "*** NOT FOUND ***"))
-    print("[Conf] :: Announcement file %s%s %s" % (const.AUDIO_PATH, const.AUDIO_ANN_FILE, "found" if const.AUDIO_ANN_FILE in uos.listdir(const.AUDIO_PATH) else "*** NOT FOUND ***"))
-    print("[Conf] :: ==================================================================")
-
-
-    pico_temp = picoTemperature()
-    taa = temperatureAsAudio()
-
-    player = wavePlayer()
-    audioId = const.AUDIO_PATH + const.AUDIO_ID_FILE
-    audioAnn = const.AUDIO_PATH + const.AUDIO_ANN_FILE
-    
     hmi = HMI()
     hmi.led_pico_blink_enable()
 
@@ -54,15 +35,33 @@ if __name__ == "__main__":
     dr1x.on_tx_start_connect(hmi.led_id.high)
     dr1x.on_tx_stop_connect(hmi.led_id.low)
 
+    pico_temp = picoTemperature()
+    taa = temperatureAsAudio()
+
+    player = wavePlayer()
+    audioId = const.AUDIO_PATH + const.AUDIO_ID_FILE
+    audioAnn = const.AUDIO_PATH + const.AUDIO_ANN_FILE
+
+    # init
+    print("[Init] :: %s version %s by %s @ %s" % (const.APP_NAME, const.APP_VERSION, const.APP_AUTHOR, const.APP_YEAR))
+    print("[Conf] :: ==================================================================")
+    print("[Conf] :: Usage check duration: %d sec." % (const.USAGE_CHECK_DURATION))
+    print("[Conf] :: Usage check frequency: %.1f Hz" % (const.SAMPLING_FREQ))
+    print("[Conf] :: Usage check period: %.2f sec (%.1f ms)" % (const.SAMPLING_PERIOD_SEC, const.SAMPLING_PERIOD_MS))
+    print("[Conf] :: Temperature threshold: %.1f degC" % (const.TEMPERATURE_THRESHOLD))
+    print("[Conf] :: ID file %s %s" % (audioId, "found" if const.AUDIO_ID_FILE in uos.listdir(const.AUDIO_PATH) else "*** NOT FOUND ***"))
+    print("[Conf] :: Announcement file %s %s" % (audioAnn, "found" if const.AUDIO_ANN_FILE in uos.listdir(const.AUDIO_PATH) else "*** NOT FOUND ***"))
+    print("[Conf] :: ==================================================================")
+
     # IRQ Handler for CTCSS
     def irq_on_ctcss(pin):
         if pin.value() == 0:
-            pin_led_ctcss.high()
+            hmi.led_ctcss.high()
         else:
-            pin_led_ctcss.value(0)
+            hmi.led_ctcss.low()
         
-    #pin_dr1x_ctcss_rx.irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
-    dr1x.ctcss_get_hw_pin().irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
+    #dr1x.ctcss_get_hw_pin().irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
+    dr1x.set_irq_routine(irq_on_ctcss)
 
     count_1h = 0
     
@@ -112,10 +111,11 @@ if __name__ == "__main__":
 
     try:
         while True:
+
             # Check repeater in use
             count = 0
-            #count_detect = 0
             print("[Info] :: Checking if repeater is free to ID ...")
+
             while True:
                 count = count + 1
 
@@ -123,10 +123,9 @@ if __name__ == "__main__":
                 # Can be improved to be more smart then
                 # a simple unique detection.
                 # First approach, increase detection time
-                if dr1x.ctcss_detected() == 0:
+                if dr1x.ctcss_detected() == True:
                     count = 0
                     print("[Warn] :: CTCSS detected => Reset counter ...")
-                    #count_detect += 1
 
                 utime.sleep_ms(const.SAMPLING_PERIOD_MS)
 
@@ -153,7 +152,7 @@ if __name__ == "__main__":
 
             play_id()
             check_temperature_and_inform_if_above(const.TEMPERATURE_THRESHOLD)
-            count_1h = check_if_its_time_to_announce(2, count_1h)
+            count_1h = check_if_its_time_to_announce(6, count_1h)
 
             #stop TX
             utime.sleep(0.75)
@@ -161,8 +160,8 @@ if __name__ == "__main__":
 
             # Wait most of 10 minutes
             print("[Info] :: Will *** LONG SLEEP *** until next ID ...")
-            #utime.sleep(590)
-            utime.sleep(6)
+            utime.sleep(590)
+            #utime.sleep(6)
             
             # If 1 hour elapsed then play the announcement if it exists
             count_1h += 1
