@@ -28,12 +28,8 @@ from temperatureAsAudio import temperatureAsAudio
     
 if __name__ == "__main__":
 
-    hmi = HMI()
-    hmi.led_pico_blink_enable()
-
     dr1x = DR1x()
-    dr1x.on_tx_start_connect(hmi.led_id.high)
-    dr1x.on_tx_stop_connect(hmi.led_id.low)
+    hmi = HMI()
 
     pico_temp = picoTemperature()
     taa = temperatureAsAudio()
@@ -52,6 +48,10 @@ if __name__ == "__main__":
     print("[Conf] :: ID file %s %s" % (audioId, "found" if const.AUDIO_ID_FILE in uos.listdir(const.AUDIO_PATH) else "*** NOT FOUND ***"))
     print("[Conf] :: Announcement file %s %s" % (audioAnn, "found" if const.AUDIO_ANN_FILE in uos.listdir(const.AUDIO_PATH) else "*** NOT FOUND ***"))
     print("[Conf] :: ==================================================================")
+
+    hmi.led_pico_blink_enable()
+    dr1x.on_tx_start_connect(hmi.led_id.high)
+    dr1x.on_tx_stop_connect(hmi.led_id.low)
 
     # IRQ Handler for CTCSS
     def irq_on_ctcss(pin):
