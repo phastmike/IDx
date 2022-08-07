@@ -9,18 +9,16 @@
  ARM team:
  CT1BDV Emanuel, CT1ENQ Miguel, CT1EYN Costa, CS7AFE Carlos, CT1EUK Freitas, CR7AQJ Soares
 
- Power can be drawn from DE/H-15 Plug, 13.8V 2A (Fuse 3A) and regulated to 5V
- Not much electronics needed, direct interfacing does work with internal pull-ups
- 
  Runs on Micropython version 1.18, 1.19.1
 
 '''
 import utime
 import constants as const
 import os as uos
+import micropython
 from hmi import HMI
 from dr1x import DR1x
-from machine import Pin
+from machine import Pin, Timer
 from wavePlayer import wavePlayer
 from picoTemperature import picoTemperature
 from temperatureAsAudio import temperatureAsAudio
@@ -41,6 +39,7 @@ if __name__ == "__main__":
     # init
     print("[Init] :: %s version %s by %s @ %s" % (const.APP_NAME, const.APP_VERSION, const.APP_AUTHOR, const.APP_YEAR))
     print("[Conf] :: ==================================================================")
+    print("[Pico] :: CPU Freq: %.1f MHz" % (machine.freq() / 1000000))
     print("[Conf] :: Usage check duration: %d sec." % (const.USAGE_CHECK_DURATION))
     print("[Conf] :: Usage check frequency: %.1f Hz" % (const.SAMPLING_FREQ))
     print("[Conf] :: Usage check period: %.2f sec (%.1f ms)" % (const.SAMPLING_PERIOD_SEC, const.SAMPLING_PERIOD_MS))
@@ -53,6 +52,9 @@ if __name__ == "__main__":
     dr1x.on_tx_start_connect(hmi.led_id.high)
     dr1x.on_tx_stop_connect(hmi.led_id.low)
 
+    def timer_cb(t):
+        hmi.led_id.value(not hmi.led_id.value())
+
     # IRQ Handler for CTCSS
     def irq_on_ctcss(pin):
         if pin.value() == 0:
@@ -60,7 +62,6 @@ if __name__ == "__main__":
         else:
             hmi.led_ctcss.low()
         
-    #dr1x.ctcss_get_hw_pin().irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
     dr1x.set_irq_routine(irq_on_ctcss)
 
     count_1h = 0
@@ -101,20 +102,23 @@ if __name__ == "__main__":
                 player.play(audioAnn)
             except:
                 print("[Warn] :: exception in announcement file audio/main_an.wav...")
-        #else:
-        #    print("count_1h = %d" % count_1h)
         return count
 
     # ---
     # Need to had delay for repeater to boot
+    # It takes around 6 sec. to boot
     # ---
+    
 
     try:
         while True:
-
+            
             # Check repeater in use
             count = 0
             print("[Info] :: Checking if repeater is free to ID ...")
+
+            #tim = machine.Timer(periodic=const.SAMPLING_PERIOD_MS, callback=timer_cb)
+            tim = machine.Timer(period=const.SAMPLING_PERIOD_MS * 4, callback=timer_cb)
 
             while True:
                 count = count + 1
@@ -130,6 +134,7 @@ if __name__ == "__main__":
                 utime.sleep_ms(const.SAMPLING_PERIOD_MS)
 
                 ## refactor
+                """
                 if count < ID_BLINK_RATE_1:
                     if count % 4 == 0:
                         hmi.led_id.value(not hmi.led_id.value())
@@ -139,11 +144,12 @@ if __name__ == "__main__":
                             hmi.led_id.value(not hmi.led_id.value())
                     else:
                             hmi.led_id.value(not hmi.led_id.value())
-
+                """
                 if count % (const.SAMPLING_FREQ) == 0:
                     print ("[Time] :: Elapsed %d/%d sec." % ((int) (count / const.SAMPLING_FREQ), const.USAGE_CHECK_DURATION))
                 if count >= (const.USAGE_CHECK_DURATION * const.SAMPLING_FREQ):
                     print ("[Info] :: Will ID Repeater ...")
+                    tim.deinit()
                     break
                         
             # Start Tx
@@ -159,7 +165,9 @@ if __name__ == "__main__":
             dr1x.tx_stop()
 
             # Wait most of 10 minutes
-            print("[Info] :: Will *** LONG SLEEP *** until next ID ...")
+            print("[Info] :: *********************************************")
+            print("[Info] :: * Will *** LONG SLEEP *** until next ID ... *")
+            print("[Info] :: *********************************************")
             utime.sleep(590)
             #utime.sleep(6)
             
