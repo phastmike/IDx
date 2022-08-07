@@ -64,11 +64,7 @@ if __name__ == "__main__":
         
     dr1x.set_irq_routine(irq_on_ctcss)
 
-    count_1h = 0
     
-    ID_BLINK_RATE_1 = (const.SAMPLING_FREQ / 2) * 10
-    ID_BLINK_RATE_2 = ID_BLINK_RATE_1 + (ID_BLINK_RATE_1 / 2)
-
     # Local nested functions
 
     def play_id():
@@ -92,8 +88,6 @@ if __name__ == "__main__":
             utime.sleep(0.25)
 
     def check_if_its_time_to_announce(every_ntimes, count):
-        # Wait 6 times (6 x delay_10min = 1 hour)
-        # If one hour elapsed, play the announcement if exists
         print("[Dbug] :: count is %d >= %d ? %s" % (count, every_ntimes, "Yes, will reset count to 0 ..." if count >= every_ntimes else "No ..."))
         if count >= every_ntimes:
             count = 0
@@ -108,7 +102,10 @@ if __name__ == "__main__":
     # Need to had delay for repeater to boot
     # It takes around 6 sec. to boot
     # ---
+    #utime.sleep(6)
     
+
+    count_ann = 0
 
     try:
         while True:
@@ -117,7 +114,6 @@ if __name__ == "__main__":
             count = 0
             print("[Info] :: Checking if repeater is free to ID ...")
 
-            #tim = machine.Timer(periodic=const.SAMPLING_PERIOD_MS, callback=timer_cb)
             tim = machine.Timer(period=const.SAMPLING_PERIOD_MS * 4, callback=timer_cb)
 
             while True:
@@ -133,18 +129,6 @@ if __name__ == "__main__":
 
                 utime.sleep_ms(const.SAMPLING_PERIOD_MS)
 
-                ## refactor
-                """
-                if count < ID_BLINK_RATE_1:
-                    if count % 4 == 0:
-                        hmi.led_id.value(not hmi.led_id.value())
-                else:
-                    if count < ID_BLINK_RATE_2:
-                        if count % 2 == 0:
-                            hmi.led_id.value(not hmi.led_id.value())
-                    else:
-                            hmi.led_id.value(not hmi.led_id.value())
-                """
                 if count % (const.SAMPLING_FREQ) == 0:
                     print ("[Time] :: Elapsed %d/%d sec." % ((int) (count / const.SAMPLING_FREQ), const.USAGE_CHECK_DURATION))
                 if count >= (const.USAGE_CHECK_DURATION * const.SAMPLING_FREQ):
@@ -158,7 +142,7 @@ if __name__ == "__main__":
 
             play_id()
             check_temperature_and_inform_if_above(const.TEMPERATURE_THRESHOLD)
-            count_1h = check_if_its_time_to_announce(6, count_1h)
+            count_ann = check_if_its_time_to_announce(6, count_ann)
 
             #stop TX
             utime.sleep(0.75)
@@ -168,11 +152,9 @@ if __name__ == "__main__":
             print("[Info] :: *********************************************")
             print("[Info] :: * Will *** LONG SLEEP *** until next ID ... *")
             print("[Info] :: *********************************************")
-            utime.sleep(590)
-            #utime.sleep(6)
+            utime.sleep(600 - const.USAGE_CHECK_DURATION)
             
-            # If 1 hour elapsed then play the announcement if it exists
-            count_1h += 1
+            count_ann += 1
 
             
     except KeyboardInterrupt:

@@ -5,7 +5,7 @@ Constants and configuration
 # Application
 
 APP_NAME = "Pico IDx"
-APP_VERSION = "0.4"
+APP_VERSION = "0.5"
 APP_AUTHOR = "CT1ENQ"
 APP_YEAR = 2022
 
