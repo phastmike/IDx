@@ -46,14 +46,15 @@ if __name__ == "__main__":
     print("[Conf] :: Temperature threshold: %.1f degC" % (const.TEMPERATURE_THRESHOLD))
     print("[Conf] :: ID file %s %s" % (audioId, "found" if const.AUDIO_ID_FILE in uos.listdir(const.AUDIO_PATH) else "*** NOT FOUND ***"))
     print("[Conf] :: Announcement file %s %s" % (audioAnn, "found" if const.AUDIO_ANN_FILE in uos.listdir(const.AUDIO_PATH) else "*** NOT FOUND ***"))
+    print("[Conf] :: ID interval: %d minutes (%d sec)" % (const.SLEEP_MIN, const.SLEEP_MIN * 60))
     print("[Conf] :: ==================================================================")
 
     hmi.led_pico_blink_enable()
     dr1x.on_tx_start_connect(hmi.led_id.high)
     dr1x.on_tx_stop_connect(hmi.led_id.low)
 
-    def timer_cb(t):
-        hmi.led_id.value(not hmi.led_id.value())
+    def timer_callback(t):
+        hmi.led_id.toggle()
 
     # IRQ Handler for CTCSS
     def irq_on_ctcss(pin):
@@ -106,6 +107,7 @@ if __name__ == "__main__":
     
 
     count_ann = 0
+    sleep_duration = ((const.SLEEP_MIN * 60) - const.USAGE_CHECK_DURATION)
 
     try:
         while True:
@@ -114,7 +116,7 @@ if __name__ == "__main__":
             count = 0
             print("[Info] :: Checking if repeater is free to ID ...")
 
-            tim = machine.Timer(period=const.SAMPLING_PERIOD_MS * 4, callback=timer_cb)
+            tim = machine.Timer(period=const.SAMPLING_PERIOD_MS * 4, callback=timer_callback)
 
             while True:
                 count = count + 1
@@ -149,10 +151,10 @@ if __name__ == "__main__":
             dr1x.tx_stop()
 
             # Wait most of 10 minutes
-            print("[Info] :: *********************************************")
-            print("[Info] :: * Will *** LONG SLEEP *** until next ID ... *")
-            print("[Info] :: *********************************************")
-            utime.sleep(600 - const.USAGE_CHECK_DURATION)
+            print("[Info] :: *****************************************************")
+            print("[Info] :: Will *** SLEEP *** %d seconds until next ID ... " % (sleep_duration))
+            print("[Info] :: *****************************************************")
+            utime.sleep(sleep_duration)
             
             count_ann += 1
 

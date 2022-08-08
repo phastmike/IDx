@@ -5,7 +5,7 @@ Constants and configuration
 # Application
 
 APP_NAME = "Pico IDx"
-APP_VERSION = "0.5"
+APP_VERSION = "1.0"
 APP_AUTHOR = "CT1ENQ"
 APP_YEAR = 2022
 
@@ -30,4 +30,4 @@ USAGE_CHECK_DURATION = 8
 
 # ID Interval
 
-SLEEP_SEC = 60
+SLEEP_MIN = 10
