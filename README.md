@@ -42,6 +42,44 @@ count_ann = check_if_its_time_to_announce(6, count_ann)
 If we don't want announcements, simply delete the annoucement file `main_ann.wav`.
 The ID file is `main_id.wav` and all the configurations are listed in `constants.py`.
 
+### Sample debug output
+
+If this controller is connected to a PC, you can check the debug output via
+thonny or other REPL tool. Here is a sample:
+
+```text
+[Init] :: Pico IDx version 1.0 by CT1ENQ @ 2022
+[Conf] :: ==================================================================
+[Pico] :: CPU Freq: 125.0 MHz
+[Conf] :: Usage check duration: 8 sec.
+[Conf] :: Usage check frequency: 20.0 Hz
+[Conf] :: Usage check period: 0.05 sec (50.0 ms)
+[Conf] :: Temperature threshold: 35.0 degC
+[Conf] :: ID file audio/main_id.wav found
+[Conf] :: Announcement file audio/main_an.wav *** NOT FOUND ***
+[Conf] :: ID interval: 10 minutes (600 sec)
+[Conf] :: ==================================================================
+[HMI ] :: Led Pico started blinking
+[Info] :: Checking if repeater is free to ID ...
+[Time] :: Elapsed 1/8 sec.
+[Time] :: Elapsed 2/8 sec.
+[Time] :: Elapsed 3/8 sec.
+[Time] :: Elapsed 4/8 sec.
+[Time] :: Elapsed 5/8 sec.
+[Time] :: Elapsed 6/8 sec.
+[Time] :: Elapsed 7/8 sec.
+[Time] :: Elapsed 8/8 sec.
+[Info] :: Will ID Repeater ...
+[DR1X] :: Will START TX now ...
+[IDx ] :: Trying to play id ...
+[Temp] :: Temperature 27.5 C
+[Dbug] :: count is 0 >= 6 ? No ...
+[DR1X] :: Will STOP TX now ...
+[Info] :: *****************************************************
+[Info] :: Will *** SLEEP *** 592 seconds until next ID ... 
+[Info] :: *****************************************************
+```
+
 ### PWM Audio
 
 The PWM audio came from:
