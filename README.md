@@ -92,7 +92,7 @@ with dependencies from:
 
 ## Hardware
 
-The hardware schematic is available on another repository but some insights are
+The hardware schematic is available on [another repository](https://github.com/phastmike/IDx_hardware) but some insights are
 needed on the software side, namely the pinout used for the repeater signals and
 HMI (Human Machine Interface) LEDs.
 
