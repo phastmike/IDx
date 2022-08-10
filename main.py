@@ -9,18 +9,16 @@
  ARM team:
  CT1BDV Emanuel, CT1ENQ Miguel, CT1EYN Costa, CS7AFE Carlos, CT1EUK Freitas, CR7AQJ Soares
 
- Power could be drawn from DE/H-15 Plug, 13.8V 2A (Fuse 3A) and regulated to 5V
- Not much electronics needed, direct interfacing does work with internal pull-ups
- 
  Runs on Micropython version 1.18, 1.19.1
 
 '''
 import utime
 import constants as const
 import os as uos
+import micropython
 from hmi import HMI
 from dr1x import DR1x
-from machine import Pin
+from machine import Pin, Timer
 from wavePlayer import wavePlayer
 from picoTemperature import picoTemperature
 from temperatureAsAudio import temperatureAsAudio
@@ -28,127 +26,141 @@ from temperatureAsAudio import temperatureAsAudio
     
 if __name__ == "__main__":
 
-    # init
-    print("[Init] :: %s version %s by %s @ %s" % (const.APP, const.VERSION, const.AUTHOR, const.APP_YEAR))
-    print("[Conf] :: ==================================================================")
-    print("[Conf] :: Usage check duration: %d sec." % (const.USAGE_CHECK_DURATION))
-    print("[Conf] :: Usage check frequency: %.1f Hz" % (const.SAMPLING_FREQ))
-    print("[Conf] :: Usage check period: %.2f sec (%.1f ms)" % (const.SAMPLING_PERIOD_SEC, const.SAMPLING_PERIOD_MS))
-    print("[Conf] :: ID file %s %s" % (const.AUDIO_ID_FILE, "found" if const.AUDIO_ID_FILE in uos.listdir(const.AUDIO_PATH) else "NOT FOUND"))
-    print("[Conf] :: Announcement file %s %s" % (const.AUDIO_ANN_FILE, "found" if const.AUDIO_ANN_FILE in uos.listdir(const.AUDIO_PATH) else "NOT FOUND"))
-    print("[Conf] :: ==================================================================")
-
+    dr1x = DR1x()
+    hmi = HMI()
 
     pico_temp = picoTemperature()
     taa = temperatureAsAudio()
-    
-    hmi = HMI()
-    hmi.led_pico_blink_enable()
 
-    dr1x = DR1x()
-    dr1x.on_tx_start_connect(hmi.led_id_turn_on)
-    dr1x.on_tx_stop_connect(hmi.led_id_turn_off)
+    player = wavePlayer()
+    audioId = const.AUDIO_PATH + const.AUDIO_ID_FILE
+    audioAnn = const.AUDIO_PATH + const.AUDIO_ANN_FILE
+
+    # init
+    print("[Init] :: %s version %s by %s @ %s" % (const.APP_NAME, const.APP_VERSION, const.APP_AUTHOR, const.APP_YEAR))
+    print("[Conf] :: ==================================================================")
+    print("[Pico] :: CPU Freq: %.1f MHz" % (machine.freq() / 1000000))
+    print("[Conf] :: Usage check duration: %d sec." % (const.USAGE_CHECK_DURATION))
+    print("[Conf] :: Usage check frequency: %.1f Hz" % (const.SAMPLING_FREQ))
+    print("[Conf] :: Usage check period: %.2f sec (%.1f ms)" % (const.SAMPLING_PERIOD_SEC, const.SAMPLING_PERIOD_MS))
+    print("[Conf] :: Temperature threshold: %.1f degC" % (const.TEMPERATURE_THRESHOLD))
+    print("[Conf] :: ID file %s %s" % (audioId, "found" if const.AUDIO_ID_FILE in uos.listdir(const.AUDIO_PATH) else "*** NOT FOUND ***"))
+    print("[Conf] :: Announcement file %s %s" % (audioAnn, "found" if const.AUDIO_ANN_FILE in uos.listdir(const.AUDIO_PATH) else "*** NOT FOUND ***"))
+    print("[Conf] :: ID interval: %d minutes (%d sec)" % (const.SLEEP_MIN, const.SLEEP_MIN * 60))
+    print("[Conf] :: ==================================================================")
+
+    hmi.led_pico_blink_enable()
+    dr1x.on_tx_start_connect(hmi.led_id.high)
+    dr1x.on_tx_stop_connect(hmi.led_id.low)
+
+    def timer_callback(t):
+        hmi.led_id.toggle()
 
     # IRQ Handler for CTCSS
     def irq_on_ctcss(pin):
         if pin.value() == 0:
-            pin_led_ctcss.high()
+            hmi.led_ctcss.high()
         else:
-            pin_led_ctcss.value(0)
+            hmi.led_ctcss.low()
         
-    #pin_dr1x_ctcss_rx.irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
-    dr1x.ctcss_get_hw_pin().irq(irq_on_ctcss, Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
+    dr1x.set_irq_routine(irq_on_ctcss)
 
-    #init audio player
-    player = wavePlayer()
-    audioId = const.AUDIO_PATH + const.AUDIO_ID_FILE
-    audioAnn = const.AUDIO_PATH + const.AUDIO_ANN_FILE
     
-    count_1h = 0
-    
+    # Local nested functions
+
+    def play_id():
+        try:
+            print("[IDx ] :: Trying to play id ...")
+            player.play(audioId)
+        except:
+            print("[Errr] :: exception in id file %s ..." % audioId)
+
+    def check_temperature_and_inform_if_above(x_deg):
+        # measure temperature
+        temperature = pico_temp.get_temperature() + 7.0
+        print("[Temp] :: Temperature %.1f C" % temperature)
+        if (temperature <= 5.0 or temperature >= x_deg):
+            print("[Warn] :: Temperature %.1f above %.1f :: Try playing temperature as audio ..." % (temperature, x_deg))
+            utime.sleep(1)
+            try:
+                taa.play_temperature_as_audio(temperature)
+            except:
+                print("[Errr] :: exception in temperature audio ...")
+            utime.sleep(0.25)
+
+    def check_if_its_time_to_announce(every_ntimes, count):
+        print("[Dbug] :: count is %d >= %d ? %s" % (count, every_ntimes, "Yes, will reset count to 0 ..." if count >= every_ntimes else "No ..."))
+        if count >= every_ntimes:
+            count = 0
+            try:
+                print("[IDx ] :: Trying to play announcement ...")
+                player.play(audioAnn)
+            except:
+                print("[Warn] :: exception in announcement file audio/main_an.wav...")
+        return count
+
+    # ---
     # Need to had delay for repeater to boot
+    # It takes around 6 sec. to boot
+    # ---
+    #utime.sleep(6)
     
-    ID_BLINK_RATE_1 = (const.SAMPLING_FREQ / 2) * 10
-    ID_BLINK_RATE_2 = ID_BLINK_RATE_1 + (ID_BLINK_RATE_1 / 2)
+
+    count_ann = 0
+    sleep_duration = ((const.SLEEP_MIN * 60) - const.USAGE_CHECK_DURATION)
 
     try:
         while True:
+            
             # Check repeater in use
             count = 0
             print("[Info] :: Checking if repeater is free to ID ...")
+
+            tim = machine.Timer(period=const.SAMPLING_PERIOD_MS * 4, callback=timer_callback)
+
             while True:
                 count = count + 1
-                if dr1x.ctcss_detected() == 0:
+
+                # If there is some activity, start recount
+                # Can be improved to be more smart then
+                # a simple unique detection.
+                # First approach, increase detection time
+                if dr1x.ctcss_detected() == True:
                     count = 0
-                    print("[Warn] :: CTCSS detected, busy? => Reset counter")
-                #utime.sleep(0.05)
+                    print("[Warn] :: CTCSS detected => Reset counter ...")
+
                 utime.sleep_ms(const.SAMPLING_PERIOD_MS)
 
-                ## refactor
-                if count < ID_BLINK_RATE_1:
-                    if count % 4 == 0:
-                        hmi.led_id.value(not hmi.led_id.value())
-                else:
-                    if count < ID_BLINK_RATE_2:
-                        if count % 2 == 0:
-                            hmi.led_id.value(not hmi.led_id.value())
-                    else:
-                            hmi.led_id.value(not hmi.led_id.value())
-
                 if count % (const.SAMPLING_FREQ) == 0:
-                    #print("[Time] :: Waiting for %f secs ... (count = %d)" % (1
-                    print ("[Time] :: Elapsed %d/%d sec." % ((int) (count / (1/0.05)), const.USAGE_CHECK_DURATION))
+                    print ("[Time] :: Elapsed %d/%d sec." % ((int) (count / const.SAMPLING_FREQ), const.USAGE_CHECK_DURATION))
                 if count >= (const.USAGE_CHECK_DURATION * const.SAMPLING_FREQ):
-                    print ("[Info] :: Will ID Repeater now by playing %s file..." % audioId)
+                    print ("[Info] :: Will ID Repeater ...")
+                    tim.deinit()
                     break
                         
             # Start Tx
             dr1x.tx_start()
             utime.sleep(0.75)
 
-            # Play ID
-            try:
-                player.play(audioId)
-            except:
-                print("[Errr] :: exception in id file audio/main_id.wav...")
-            
-            # measure temperature
-            temperature = pico_temp.get_temperature() + 7
-            #print("Temperature %.1f C" % temperature)
-            if (temperature <= 5 or temperature >= const.TEMPERATURE_THRESHOLD):
-                print("[Warn] :: Temperature %.1f above %.1f :: Playing temperature as audio..." % (temperature, const.TEMPERATURE_THRESHOLD))
-                utime.sleep(1)
-                try:
-                    taa.play_temperature_as_audio(temperature)
-                except:
-                    print("[Errr] :: exception in temperature audio ...")
-                utime.sleep(0.25)
-            
-            # If one hour elapsed, play the announcement if exists
-            if count_1h >= 6:
-                count_1h = 0
-                try:
-                    player.play(audioAnn)
-                except:
-                    print("[Warn] :: exception in announcement file audio/main_an.wav...")
-            #else:
-            #    print("count_1h = %d" % count_1h)
-            
+            play_id()
+            check_temperature_and_inform_if_above(const.TEMPERATURE_THRESHOLD)
+            count_ann = check_if_its_time_to_announce(6, count_ann)
+
             #stop TX
             utime.sleep(0.75)
             dr1x.tx_stop()
 
             # Wait most of 10 minutes
-            #utime.sleep(590)
-            print("[Info] :: Will sleep until next ID...")
-            utime.sleep(60)
+            print("[Info] :: *****************************************************")
+            print("[Info] :: Will *** SLEEP *** %d seconds until next ID ... " % (sleep_duration))
+            print("[Info] :: *****************************************************")
+            utime.sleep(sleep_duration)
             
-            # If 1 hour elapsed then play the announcement if it exists
-            count_1h += 1
+            count_ann += 1
 
             
     except KeyboardInterrupt:
-        print("[Warn] :: Ctrl + c : Exit mainloop...")
+        print("[Warn] :: Ctrl + c : Exit mainloop ...")
         hmi.led_pico_blink_disable()
         player.stop()
         

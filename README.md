@@ -9,47 +9,130 @@ option is very limited.
 
 ### Requirements/Features
 
-Notes:
+- [x] ID "every" 10 minutes
+- [x] ID **only** if the repeater is not in use
+- [x] Remove ISD dependency by using PWM Audio
+- [x] Leds for hmi (On - CTCSS Detect - TX ID [Blink - ID tryout])
+- [x] Telemetry
+- [x] Announcements
+
+Improvements that could be implemented:
 
 - Agressive mode (ID immediately - Vs relaxed, wait x sec. after no in use)
-- Improved ID tryout by averaging instead of a single switch :/
-
----
-
-- ID "every" 10 minutes (*done*)
-- ID **only** if the repeater is not in use (*done?)
-- Remove ISD dependency by using PWM Audio (*done*)
-- Leds for hmi (*done : On, CTCSS Detect, TX ID [Blink - ID tryout]*)
-- Telemetry (*done - internal temperature*)
-- Announcements (*done - How to schedule? Now it's repeating every hour*)
-
----
-
-- *needs any hmi input?*
-- *Suppose connection to PC (Hw)?*
-- *Repo HW/SW or separated?*
+- Improved ID tryout by averaging instead of a single ctcss detection
 
 ## Implementation
 
 The advantage of using the Pico and specially the Python
 SDK is that the filesystem is already there amongst others.
 
+This is crucial for the audio files being used for ID, temperature to audio 
+convertion and announcements.
+
+These files are located in the `audio/` folder. Annoucements are programatically
+defined as being played every 6 IDs which equates to 1 hour when using ID intervals
+of 10 minutes:
+
+```python
+...
+count_ann = check_if_its_time_to_announce(6, count_ann)
+...
+```
+
+If we don't want announcements, simply delete the annoucement file `main_ann.wav`.
+The ID file is `main_id.wav` and all the configurations are listed in `constants.py`.
+
+### Sample debug output
+
+If this controller is connected to a PC, you can check the debug output via
+thonny or other REPL tool. Here is a sample:
+
+```text
+[Init] :: Pico IDx version 1.0 by CT1ENQ @ 2022
+[Conf] :: ==================================================================
+[Pico] :: CPU Freq: 125.0 MHz
+[Conf] :: Usage check duration: 8 sec.
+[Conf] :: Usage check frequency: 20.0 Hz
+[Conf] :: Usage check period: 0.05 sec (50.0 ms)
+[Conf] :: Temperature threshold: 35.0 degC
+[Conf] :: ID file audio/main_id.wav found
+[Conf] :: Announcement file audio/main_an.wav *** NOT FOUND ***
+[Conf] :: ID interval: 10 minutes (600 sec)
+[Conf] :: ==================================================================
+[HMI ] :: Led Pico started blinking
+[Info] :: Checking if repeater is free to ID ...
+[Time] :: Elapsed 1/8 sec.
+[Time] :: Elapsed 2/8 sec.
+[Time] :: Elapsed 3/8 sec.
+[Time] :: Elapsed 4/8 sec.
+[Time] :: Elapsed 5/8 sec.
+[Time] :: Elapsed 6/8 sec.
+[Time] :: Elapsed 7/8 sec.
+[Time] :: Elapsed 8/8 sec.
+[Info] :: Will ID Repeater ...
+[DR1X] :: Will START TX now ...
+[IDx ] :: Trying to play id ...
+[Temp] :: Temperature 27.5 C
+[Dbug] :: count is 0 >= 6 ? No ...
+[DR1X] :: Will STOP TX now ...
+[Info] :: *****************************************************
+[Info] :: Will *** SLEEP *** 592 seconds until next ID ... 
+[Info] :: *****************************************************
+```
+
+### PWM Audio
+
+The PWM audio came from:
+
+- https://github.com/danjperron/PicoAudioPWM
+
+with dependencies from:
+
+- https://github.com/joeky888/awesome-micropython-lib/tree/master/Audio
+
+## Hardware
+
+The hardware schematic is available on [another repository](https://github.com/phastmike/IDx_hardware) but some insights are
+needed on the software side, namely the pinout used for the repeater signals and
+HMI (Human Machine Interface) LEDs.
+
 Power is drawn from DE/H-15 Plug, 13.8V 2A (Fuse 3A) and regulated to 5V.
 Not many electronics needed, direct interfacing does work with internal pull-ups.
-Can have both VCC from radio and USB VCC as voltage supply and the power switch
+**Can have both VCC from radio and USB VCC as voltage supply** and the power switch
 it's controlling only the radio power supply.
 
-The PWM Audio goes thru a low pass filter and the colume control it's a simple
+The PWM Audio goes thru a low pass filter and the volume control it's a simple
 resistive voltage divider.
 
 Three leds present some information to the user:
 
-1. Power On
-2. CTCSS Detection
-3. Tx Identification *(\*)*
+```text
+    LED     LED     LED
+    [1]     [2]     [3] 
 
-*(\*) blinks while checking if the repeater it's in use*
+    ON     CTCSS    ID
+          DETECTED   *
 
+            ooo
+          o  |  o
+         o   |   o
+          o     o
+            ooo
+
+           VOLUME
+			POT
+
+
+(*) Blinks while checking if channel is free for ID
+```
+
+### LED Pinout
+
+The **Power On Led** is connected directly to the regulator, so **it will not light up
+when the circuit is powered only by USB**.
+
+- The CTCSS detect led it's controlled by GPIO 17 (Pin 22)
+- The ID Led it's controlled by GPIO 18 (Pin 24).
 
 ### DB/DE/DH 15 Pin VGA like connector
 
@@ -81,6 +164,9 @@ Operating mode is intended as FM Fix/FM Fix which means:
 
 That's the reason we don't use pin 12, high by default.
 
+These EXT pins are not mandatory to use as the repeater can be used to operate
+in non remote mode.
+
 ## Author
 
 CT1ENQ Miguel
@@ -98,8 +184,6 @@ listed below in alphabetic order:
 - CS7AFE Carlos,
 - CS7ALF Constantino,
 - CR7AQJ Soares.
-
-
 
 ## Links
 - TextToSpeech: https://wideo.co/text-to-speech/

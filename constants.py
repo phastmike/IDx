@@ -1,19 +1,19 @@
 """
-Constants
+Constants and configuration
 """
 
 # Application
 
-APP = "Pico IDx"
-VERSION = "0.2"
-AUTHOR = "CT1ENQ"
+APP_NAME = "Pico IDx"
+APP_VERSION = "1.0"
+APP_AUTHOR = "CT1ENQ"
 APP_YEAR = 2022
 
 # Temperature
 # Announces temperature as audio
 # when above this threshold
 
-TEMPERATURE_THRESHOLD = 25.0
+TEMPERATURE_THRESHOLD = 35.0
 
 # Audio
 
@@ -27,3 +27,7 @@ SAMPLING_PERIOD_SEC = 0.05
 SAMPLING_PERIOD_MS = int(SAMPLING_PERIOD_SEC * 1000)
 SAMPLING_FREQ = 1.0 / (SAMPLING_PERIOD_SEC)
 USAGE_CHECK_DURATION = 8
+
+# ID Interval
+
+SLEEP_MIN = 10

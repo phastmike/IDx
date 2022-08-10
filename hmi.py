@@ -2,10 +2,6 @@
 HMI - Human Machine Interface class
       Output information leds
       Power led is not controllable
-
-      This class should be a singleton
-      as only one instance should exist
-      due to hardware dependency
 """
 
 import rp2
@@ -14,9 +10,9 @@ from machine import Pin
 
 class HMI:
 
-    def __init__(self):
-        self.led_ctcss = Pin(17, Pin.OUT, None, value=0)
-        self.led_id = Pin(18, Pin.OUT, None, value=0)
+    def __init__(self, led_ctcss = 17, led_id = 18):
+        self.led_ctcss = Pin(led_ctcss, Pin.OUT, None, value=0)
+        self.led_id = Pin(led_id, Pin.OUT, None, value=0)
         # Instantiate a state machine with the blink program, at 2000Hz, with set bound to Pin(25) (LED on the rp2 board)
         # Run the state machine, the internal LED should blink.
         self.__sm = rp2.StateMachine(0, self.blink, freq=2000, set_base=Pin(25))
