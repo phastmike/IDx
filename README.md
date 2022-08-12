@@ -27,7 +27,7 @@ The advantage of using the Pico and specially the Python
 SDK is that the filesystem is already there amongst others.
 
 This is crucial for the audio files being used for ID, temperature to audio 
-convertion and announcements.
+conversion and announcements.
 
 These files are located in the `audio/` folder. Annoucements are programatically
 defined as being played every 6 IDs which equates to 1 hour when using ID intervals
