@@ -100,14 +100,14 @@ if __name__ == "__main__":
         return count
 
     # ---
-    # Need to had delay for repeater to boot
-    # It takes around 6 sec. to boot
+    # Repeater to boot - It takes around 6 sec. to boot
+    # or human triggered ID reset - no delay
+    # don't do nothing it's a good compromise
     # ---
     #utime.sleep(6)
     
 
     count_ann = 0
-    sleep_duration = ((const.SLEEP_MIN * 60) - const.USAGE_CHECK_DURATION)
 
     try:
         while True:
@@ -151,10 +151,10 @@ if __name__ == "__main__":
             dr1x.tx_stop()
 
             # Wait most of 10 minutes
-            print("[Info] :: *****************************************************")
-            print("[Info] :: Will *** SLEEP *** %d seconds until next ID ... " % (sleep_duration))
-            print("[Info] :: *****************************************************")
-            utime.sleep(sleep_duration)
+            print("[Info] :: *********************************************")
+            print("[Info] :: * Will *** LONG SLEEP *** until next ID ... *")
+            print("[Info] :: *********************************************")
+            utime.sleep((const.SLEEP_MIN * 60) - const.USAGE_CHECK_DURATION)
             
             count_ann += 1
 
