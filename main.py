@@ -77,6 +77,7 @@ if __name__ == "__main__":
 
     def check_temperature_and_inform_if_above(x_deg):
         # measure temperature
+        # hardcoded minimum of 5 deg C
         temperature = pico_temp.get_temperature() + 7.0
         print("[Temp] :: Temperature %.1f C" % temperature)
         if (temperature <= 5.0 or temperature >= x_deg):
@@ -115,7 +116,7 @@ if __name__ == "__main__":
             # Check repeater in use
             count = 0
             print("[Info] :: Checking if repeater is free to ID ...")
-
+            print("[Time] ::", end = " ")
             tim = machine.Timer(period=const.SAMPLING_PERIOD_MS * 4, callback=timer_callback)
 
             while True:
@@ -127,13 +128,15 @@ if __name__ == "__main__":
                 # First approach, increase detection time
                 if dr1x.ctcss_detected() == True:
                     count = 0
-                    print("[Warn] :: CTCSS detected => Reset counter ...")
+                    #print ("[Warn] :: CTCSS detected => Reset counter ...")
 
                 utime.sleep_ms(const.SAMPLING_PERIOD_MS)
 
-                if count % (const.SAMPLING_FREQ) == 0:
-                    print ("[Time] :: Elapsed %d/%d sec." % ((int) (count / const.SAMPLING_FREQ), const.USAGE_CHECK_DURATION))
+                if count % (const.SAMPLING_FREQ) == 0 and count != 0:
+                    print ("%d" % (int) (count / const.SAMPLING_FREQ), end=" ")
+                    #print ("[Time] :: Elapsed %d/%d sec." % ((int) (count / const.SAMPLING_FREQ), const.USAGE_CHECK_DURATION), end = " ")
                 if count >= (const.USAGE_CHECK_DURATION * const.SAMPLING_FREQ):
+                    print ("")
                     print ("[Info] :: Will ID Repeater ...")
                     tim.deinit()
                     break
