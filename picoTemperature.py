@@ -14,7 +14,7 @@ class picoTemperature:
 
     def get_temperature(self):
         reading = self.sensor_temp.read_u16() * self.conversion_factor 
-        temperature = 27 - ((reading - 0.706)/0.001721)
+        temperature = 30 - ((reading - 0.706)/0.001721) # 27 - x
         return round(temperature, 1)
 
 if __name__ == "__main__":

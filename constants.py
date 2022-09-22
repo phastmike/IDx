@@ -13,7 +13,7 @@ APP_YEAR = 2022
 # Announces temperature as audio
 # when above this threshold
 
-TEMPERATURE_THRESHOLD = 35.0
+TEMPERATURE_THRESHOLD = 32.0
 
 # Audio
 
