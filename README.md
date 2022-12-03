@@ -120,7 +120,7 @@ Three leds present some information to the user:
             ooo
 
            VOLUME
-			POT
+            POT
 
 
 (*) Blinks while checking if channel is free for ID
