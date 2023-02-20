@@ -1,6 +1,8 @@
 # picoIDx
 A Yaesu DR-1x Voice Identification Controller w/ Raspberry Pi Pico Board
 
+![IDx](https://github.com/phastmike/IDx_hardware/raw/master/images/img1.jpg "Hardware Implementation")
+
 ## Description
 
 This project is based around the Raspberry Pi Pico (RP2040). It uses some digital
