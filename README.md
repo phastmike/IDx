@@ -1,20 +1,22 @@
-# picoIDx
-A Yaesu DR-1x Voice Identification Controller w/ Raspberry Pi Pico Board
+# IDx
+A Yaesu DR-1x Voice Identification Controller w/ a Raspberry Pi Pico Board
 
 ![IDx](https://github.com/phastmike/IDx_hardware/raw/master/images/img1.jpg "Hardware Implementation")
 
 ## Description
 
-This project is based around the Raspberry Pi Pico (RP2040). It uses some digital
-GPIOs to control the repeater for voice identification purposes. The original YAESU
+This project, also known as picoIDx or simply IDx, is based around the Raspberry Pi Pico (RP2040). It uses some digital
+GPIOs to control the repeater for voice identification purposes. 
+
+The original YAESU
 option is very limited. 
 
-### Requirements/Features
+### Features
 
 - [x] ID "every" 10 minutes
-- [x] ID **only** if the repeater is not in use
+- [x] ID **only** if the repeater is not in use (Detects CTCSS/C4FM)
 - [x] Remove ISD dependency by using PWM Audio
-- [x] Leds for hmi (On - CTCSS Detect - TX ID [Blink - ID tryout])
+- [x] Leds for hmi [ **On | CTCSS/C4FM Detect | TX ID** *(Blinks during ID tryout)* ]
 - [x] Telemetry
 - [x] Announcements
 
@@ -24,6 +26,14 @@ Improvements that could be implemented:
 - Improved ID tryout by averaging instead of a single ctcss detection
 
 ## Implementation
+
+The controller it's very basic, it checks CTCSS/C4FM pin for activity on the repeater and
+also counts 10 minutes to ID. Reaching time to ID it will wait for a, user defined, small amount
+of seconds without any activty on the repeater input. Any activity will reset that
+counter, so the controller holds the ID transmition up to that point where it will
+play the ID and start counting again.
+
+In this project we decided to go along with micropython.
 
 The advantage of using the Pico and specially the Python
 SDK is that the filesystem is already there amongst others.
@@ -84,7 +94,7 @@ thonny or other REPL tool. Here is a sample:
 
 ### PWM Audio
 
-The PWM audio came from:
+The PWM audio code came from:
 
 - https://github.com/danjperron/PicoAudioPWM
 
@@ -94,7 +104,7 @@ with dependencies from:
 
 ## Hardware
 
-The hardware schematic is available on [another repository](https://github.com/phastmike/IDx_hardware) but some insights are
+**The hardware schematic is available on [another repository](https://github.com/phastmike/IDx_hardware)** but some insights are
 needed on the software side, namely the pinout used for the repeater signals and
 HMI (Human Machine Interface) LEDs.
 
