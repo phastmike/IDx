@@ -22,16 +22,16 @@ option is very limited.
 
 Improvements that could be implemented:
 
-- Agressive mode (ID immediately - Vs relaxed, wait x sec. after no in use)
-- Improved ID tryout by averaging instead of a single ctcss detection
+- Agressive mode (ID immediately - Vs relaxed, wait x sec. without signals on the input)
+- Improved ID tryout by averaging instead of a single CTCSS/C4FM detection
 
 ## Implementation
 
 The controller it's very basic, it checks CTCSS/C4FM pin for activity on the repeater and
 also counts 10 minutes to ID. Reaching time to ID it will wait for a, user defined, small amount
-of seconds without any activty on the repeater input. Any activity will reset that
-counter, so the controller holds the ID transmition up to that point where it will
-play the ID and start counting again.
+of seconds without any activity on the repeater input. Any activity will reset the
+counter, so the controller holds the ID transmition up to the moment where the defined amount of
+seconds elapsed without any reception and then play the ID.
 
 In this project we decided to go along with micropython.
 
@@ -110,8 +110,8 @@ HMI (Human Machine Interface) LEDs.
 
 Power is drawn from DE/H-15 Plug, 13.8V 2A (Fuse 3A) and regulated to 5V.
 Not many electronics needed, direct interfacing does work with internal pull-ups.
-**Can have both VCC from radio and USB VCC as voltage supply** and the power switch
-it's controlling only the radio power supply.
+**We can have both VCC from radio and USB VCC as voltage supply** and the power switch
+it's only controlling the supply coming from the radio.
 
 The PWM Audio goes thru a low pass filter and the volume control it's a simple
 resistive voltage divider.
