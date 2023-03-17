@@ -8,30 +8,29 @@ A Yaesu DR-1x Voice Identification Controller w/ a Raspberry Pi Pico Board
 This project, also known as picoIDx or simply IDx, is based around the Raspberry Pi Pico (RP2040). It uses some digital
 GPIOs to control the repeater for voice identification purposes. 
 
-The original YAESU
-option is very limited. 
+The original YAESU option is very limited. 
 
 ### Features
 
 - [x] ID "every" 10 minutes
 - [x] ID **only** if the repeater is not in use (Detects CTCSS/C4FM)
-- [x] Remove ISD dependency by using PWM Audio
+- [x] Remove ISD voice record/play board dependency by using PWM Audio
 - [x] Leds for hmi [ **On | CTCSS/C4FM Detect | TX ID** *(Blinks during ID tryout)* ]
 - [x] Telemetry
 - [x] Announcements
 
 Improvements that could be implemented:
 
-- Agressive mode (ID immediately - Vs relaxed, wait x sec. after no in use)
-- Improved ID tryout by averaging instead of a single ctcss detection
+- Agressive mode (ID immediately Vs relaxed ID, wait x seconds without signals on the input)
+- Improved ID tryout by averaging instead of a single CTCSS/C4FM detection
 
 ## Implementation
 
 The controller it's very basic, it checks CTCSS/C4FM pin for activity on the repeater and
-also counts 10 minutes to ID. Reaching time to ID it will wait for a, user defined, small amount
-of seconds without any activty on the repeater input. Any activity will reset that
-counter, so the controller holds the ID transmition up to that point where it will
-play the ID and start counting again.
+also counts minutes until ID. Reaching time to ID it will wait for a, user defined, small amount
+of seconds without any activity on the repeater input. Any activity will reset the
+counter, so the controller holds the ID transmition up to the moment where the defined amount of
+seconds elapsed without any reception and then play the ID.
 
 In this project we decided to go along with micropython.
 
@@ -57,7 +56,7 @@ The ID file is `main_id.wav` and all the configurations are listed in `constants
 ### Sample debug output
 
 If this controller is connected to a PC, you can check the debug output via
-thonny or other REPL tool. Here is a sample:
+thonny or any other REPL tool. Here is a sample:
 
 ```text
 [Init] :: Pico IDx version 1.0 by CT1ENQ @ 2022
@@ -110,8 +109,8 @@ HMI (Human Machine Interface) LEDs.
 
 Power is drawn from DE/H-15 Plug, 13.8V 2A (Fuse 3A) and regulated to 5V.
 Not many electronics needed, direct interfacing does work with internal pull-ups.
-**Can have both VCC from radio and USB VCC as voltage supply** and the power switch
-it's controlling only the radio power supply.
+**We can have both VCC, from radio and USB VCC as voltage supply** but the power switch
+it's only controlling the supply coming from the radio.
 
 The PWM Audio goes thru a low pass filter and the volume control it's a simple
 resistive voltage divider.
@@ -143,7 +142,7 @@ Three leds present some information to the user:
 The **Power On Led** is connected directly to the regulator, so **it will not light up
 when the circuit is powered only by USB**.
 
-- The CTCSS detect led it's controlled by GPIO 17 (Pin 22)
+- The CTCSS/C4FM detect led it's controlled by GPIO 17 (Pin 22)
 - The ID Led it's controlled by GPIO 18 (Pin 24).
 
 ### DB/DE/DH 15 Pin VGA like connector

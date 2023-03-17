@@ -56,7 +56,7 @@ class temperatureAsAudio:
             self.player.play(self.audioPath + "dot.wav")
             self.player.play(self.get_audio_file_from_number(reminder))
             
-        self.player.play(self.audioPath + "degres.wav")
+        self.player.play(self.audioPath + "degrees.wav")
         
 if __name__ == "__main__":  
     maestro = temperatureAsAudio()
