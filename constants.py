@@ -5,9 +5,9 @@ Constants and configuration
 # Application
 
 APP_NAME = "Pico IDx"
-APP_VERSION = "1.1"
+APP_VERSION = "1.2"
 APP_AUTHOR = "CT1ENQ"
-APP_YEAR = 2022
+APP_YEAR = 2023
 
 # Temperature
 # Announces temperature as audio
@@ -20,6 +20,7 @@ TEMPERATURE_THRESHOLD = 32.0
 AUDIO_PATH = "audio/"
 AUDIO_ID_FILE = "main_id.wav"
 AUDIO_ANN_FILE = "main_an.wav"
+AUDIO_COURTESY_TONE = "courtesy_tone1.wav"
 
 # Sampling rate
 

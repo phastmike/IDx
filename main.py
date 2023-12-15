@@ -35,6 +35,7 @@ if __name__ == "__main__":
     player = wavePlayer()
     audioId = const.AUDIO_PATH + const.AUDIO_ID_FILE
     audioAnn = const.AUDIO_PATH + const.AUDIO_ANN_FILE
+    courtesy_tone = const.AUDIO_PATH + const.AUDIO_COURTESY_TONE
 
     # init
     print("[Init] :: %s version %s by %s @ %s" % (const.APP_NAME, const.APP_VERSION, const.APP_AUTHOR, const.APP_YEAR))
@@ -62,7 +63,7 @@ if __name__ == "__main__":
             hmi.led_ctcss.high()
         else:
             hmi.led_ctcss.low()
-        
+
     dr1x.set_irq_routine(irq_on_ctcss)
 
     
@@ -107,11 +108,33 @@ if __name__ == "__main__":
     # ---
     #utime.sleep(6)
     
-
+    x = 0
     count_ann = 0
 
     try:
+
         while True:
+            if dr1x.ctcss_detected() == True:
+                print("[IDx ] :: CTCSS detected ...")
+                while dr1x.ctcss_detected() == True:
+                    x = 0
+                try:
+                    # Here we should put the repeater tail duration
+                    # and a little more just to be sure the repeater stopped
+                    # transmition
+
+                    utime.sleep(0.7)
+                    print("[IDx ] :: CTCSS End * Courtesy tone ...")
+
+                    dr1x.tx_start()
+                    utime.sleep(0.1)
+                    player.play(courtesy_tone)
+                    utime.sleep(0.1)
+                    dr1x.tx_stop()
+                except:
+                    print("[Errr] :: exception in courtesy tone file %s ..." % courtesy_tone)
+
+        while False:
             
             # Check repeater in use
             count = 0
